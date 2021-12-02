@@ -1,7 +1,10 @@
 """Solution to Day 1 of AoC."""
 
 import abc
+import collections
 import collections.abc as c
+import functools
+import operator
 import typing as t
 import sys
 
@@ -14,6 +17,14 @@ class Comparable(t.Protocol):
     @abc.abstractmethod
     def __lt__(self: S, other: S) -> bool:
         """True if and only if self < other."""
+
+
+class Addable(t.Protocol):
+    """Protocol for types that implement addition."""
+
+    @abc.abstractmethod
+    def __add__(self: S, other: S) -> S:
+        """Return self + other."""
 
 
 CT = t.TypeVar("CT", bound=Comparable)
@@ -32,6 +43,28 @@ def increases(measures: c.Iterable[T], key: t.Callable[[T], CT]) -> int:
     return count
 
 
+AT = t.TypeVar("AT", bound=Addable)
+
+
+def compress_sliding_windows(
+    values: c.Iterable[AT], window_size: int = 1
+) -> c.Iterable[AT]:
+    """Compute the iterable of sums of sliding windows.
+
+    Acts as an identity function (under ==) when window_size = 1.
+
+    Returns an empty iterable if there are not enough values to fill a window.
+    """
+    window: collections.deque[AT] = collections.deque(maxlen=window_size)
+    for value in values:
+        window.append(value)
+        # we don't want to start yielding until full window
+        if len(window) == window_size:
+            # sum is too concrete to use effectively
+            # omitting a initial makes it use 0
+            yield functools.reduce(operator.add, window)
+
+
 def solve() -> None:
     """Entrypoint for solver.
 
@@ -41,6 +74,16 @@ def solve() -> None:
     print(f"Increases: {count}")
 
 
+def part_two() -> None:
+    """Entrypoint for part two.
+
+    Handles input and output.
+    """
+    converted: t.Iterable[int] = map(int, (line.strip() for line in sys.stdin))
+    count = increases(compress_sliding_windows(converted, 3), int)
+    print(f"Sliding Increases: {count}")
+
+
 # Main entrypoint
 if __name__ == "__main__":
-    solve()
+    part_two()
