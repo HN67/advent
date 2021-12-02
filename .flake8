@@ -1,0 +1,10 @@
+# Standard HN67 flake8 configuration
+[flake8]
+
+# Configure options
+max-line-length = 100
+
+# Ignore certain warnings, especially non PEP8 compliant ones
+# E203 is "whitespace before ':'", which is falsly raised in list slices
+# W503 is "line break before binary operator", which is improper style
+ignore = E203, W503
