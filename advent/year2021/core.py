@@ -1,6 +1,7 @@
 """Core utilities for Advent of Code 2021."""
 
 import argparse
+import collections.abc as c
 import logging
 import typing as t
 
@@ -46,3 +47,8 @@ def cmd(day: int, one: t.Callable[[], None], two: t.Callable[[], None]) -> None:
         one()
     elif args.part == "two":
         two()
+
+
+def load_data(file: t.TextIO) -> c.Iterable[str]:
+    """Read each line of input, stripping automatically."""
+    return (line.strip() for line in file)
