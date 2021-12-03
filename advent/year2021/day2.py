@@ -4,10 +4,13 @@ import abc
 import collections.abc as c
 import dataclasses
 import functools
+import logging
 import sys
 import typing as t
 
 from . import core
+
+logger = logging.getLogger(__name__)
 
 SU = t.TypeVar("SU", bound="Updatable")
 
@@ -71,8 +74,7 @@ class State:
         match action:
             case "forward":
                 return self + State(
-                    position=self.position
-                    + Position(horizontal=value, depth=self.aim * value),
+                    position=Position(horizontal=value, depth=self.aim * value),
                     aim=0,
                 )
             case "down":
@@ -85,7 +87,9 @@ class State:
 
 def apply_movement(initial: SU, delta: tuple[str, int]) -> SU:
     """Functionally apply a delta onto a Updatable."""
-    return initial.update(delta[0], delta[1])
+    new = initial.update(delta[0], delta[1])
+    logger.info(new)
+    return new
 
 
 def chart(commands: c.Iterable[tuple[str, int]], initial: SU) -> SU:
@@ -121,4 +125,5 @@ def part_two() -> None:
 
 
 if __name__ == "__main__":
+    core.configure_logger(logger, level=logging.INFO)
     core.cmd(2, part_one, part_two)
