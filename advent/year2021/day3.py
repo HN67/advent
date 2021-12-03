@@ -2,10 +2,13 @@
 
 import collections.abc as c
 import dataclasses
+import logging
 import sys
 import typing as t
 
 from . import core
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass()
@@ -40,7 +43,9 @@ class Counter:
 
         Returns (false, true) if both are equal.
         """
-        return (self.ones < self.zeroes, self.ones >= self.zeroes)
+        freq = (self.ones < self.zeroes, self.ones >= self.zeroes)
+        logger.debug("Counter: %s | %s", self, freq)
+        return freq
 
 
 @dataclasses.dataclass()
@@ -54,7 +59,8 @@ class Parser:
 
     def digest(self, string: str, suppress: bool = False) -> "Parser":
         """Digest a line of diagnostic output."""
-        for index, char in enumerate(string):
+        # reverse the string so we consume bits in little-endian order
+        for index, char in enumerate(reversed(string)):
             try:
                 self.data[index].digest(char, suppress=suppress)
             except IndexError as e:
@@ -64,14 +70,15 @@ class Parser:
                     raise IndexError(
                         "Something terrible has happened and a index was skipped."
                     ) from e
+        logger.info(self.data)
         return self
 
-    def gamma(self) -> t.Iterable[bool]:
-        """Calculate the gamma rate."""
+    def gamma_raw(self) -> t.Iterable[bool]:
+        """Calculate the raw gamma rate."""
         return (d.frequency()[1] for d in self.data)
 
-    def epsilon(self) -> t.Iterable[bool]:
-        """Calculate the epsilon rate."""
+    def epsilon_raw(self) -> t.Iterable[bool]:
+        """Calculate the raw epsilon rate."""
         return (d.frequency()[0] for d in self.data)
 
     @staticmethod
@@ -79,14 +86,28 @@ class Parser:
         """Convert a iterable of bits into a big-endian string."""
         return "".join(reversed(["1" if bit else "0" for bit in bits]))
 
+    def gamma(self) -> str:
+        """Calculate the formatted gamma rate."""
+        return Parser.format_value(self.gamma_raw())
+
+    def epsilon(self) -> str:
+        """Calculate the formatted gamma rate."""
+        return Parser.format_value(self.epsilon_raw())
+
+
+def parse_lines(lines: t.Iterable[str]) -> Parser:
+    """Return the (gamma, epsilon) values of the given lines"""
+    parser = Parser()
+    for line in lines:
+        parser.digest(line)
+    return parser
+
 
 def part_one() -> None:
     """Solve part one."""
-    parser = Parser()
-    for line in core.load_data(sys.stdin):
-        parser.digest(line)
-    gamma_string = Parser.format_value(parser.gamma())
-    epsilon_string = Parser.format_value(parser.epsilon())
+    parser = parse_lines(core.load_data(sys.stdin))
+    gamma_string = parser.gamma()
+    epsilon_string = parser.epsilon()
     gamma = int(gamma_string, base=2)
     epsilon = int(epsilon_string, base=2)
     print(f"Gamma:   {gamma_string} ({gamma})")
@@ -96,7 +117,11 @@ def part_one() -> None:
 
 def part_two() -> None:
     """Solve part two."""
+    # Eager evaluate lines list because we need to parse it twice
+    lines = list(core.load_data(sys.stdin))
+    parser = parse_lines(lines)
 
 
 if __name__ == "__main__":
+    core.configure_logger(logger, level=logging.INFO)
     core.cmd(3, part_one, part_two)
