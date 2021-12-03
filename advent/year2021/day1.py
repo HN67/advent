@@ -1,13 +1,14 @@
 """Solution to Day 1 of AoC."""
 
 import abc
-import argparse
 import collections
 import collections.abc as c
 import functools
 import operator
 import typing as t
 import sys
+
+from . import core
 
 S = t.TypeVar("S")
 
@@ -85,21 +86,6 @@ def part_two() -> None:
     print(f"Sliding Increases: {count}")
 
 
-def cmd() -> None:
-    """Act as a command line script."""
-
-    parser = argparse.ArgumentParser(description="Solve AoC 2021 Day 1.")
-
-    parser.add_argument("part", choices=["one", "two"], help="Which part to solve")
-
-    args = parser.parse_args()
-
-    if args.part == "one":
-        part_one()
-    elif args.part == "two":
-        part_two()
-
-
 # Main entrypoint
 if __name__ == "__main__":
-    cmd()
+    core.cmd(1, part_one, part_two)
