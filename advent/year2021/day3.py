@@ -70,16 +70,22 @@ class Parser:
                     raise IndexError(
                         "Something terrible has happened and a index was skipped."
                     ) from e
-        logger.info(self.data)
+        logger.debug(self.data)
         return self
+
+    def extract(self, index: int) -> t.Iterable[bool]:
+        """Calculate an extracted row,
+        either min (0) or max (1).
+        """
+        return (d.frequency()[index] for d in self.data)
 
     def gamma_raw(self) -> t.Iterable[bool]:
         """Calculate the raw gamma rate."""
-        return (d.frequency()[1] for d in self.data)
+        return self.extract(1)
 
     def epsilon_raw(self) -> t.Iterable[bool]:
         """Calculate the raw epsilon rate."""
-        return (d.frequency()[0] for d in self.data)
+        return self.extract(0)
 
     @staticmethod
     def format_value(bits: t.Iterable[bool]) -> str:
@@ -115,11 +121,35 @@ def part_one() -> None:
     print(f"Power Consumption: {gamma*epsilon}")
 
 
+def filter_lines(lines: t.Iterable[str], frequency_index: int) -> str:
+    """Filter the list of lines by indexing progessive columns
+    for either most/least common bit and only keeping matching rows.
+    """
+    left = list(lines)
+    index = 0
+    while len(left) > 1:
+        parser = parse_lines((line[index] for line in left))
+        bit = parser.format_value(parser.extract(frequency_index))
+        left = [line for line in left if line[index] == bit]
+        logger.debug("%s, %s", bit, left)
+        index += 1
+    return left[0]
+
+
 def part_two() -> None:
     """Solve part two."""
-    # Eager evaluate lines list because we need to parse it twice
+    # Eager evaluate lines list because we need to parse it multiple times
     lines = list(core.load_data(sys.stdin))
-    parser = parse_lines(lines)
+
+    oxygen_string = filter_lines(lines, 1)
+    co2_string = filter_lines(lines, 0)
+
+    oxygen = int(oxygen_string, base=2)
+    co2 = int(co2_string, base=2)
+
+    print(f"Gamma:   {oxygen_string} ({oxygen})")
+    print(f"Epsilon: {co2_string} ({co2})")
+    print(f"Life Support: {oxygen*co2}")
 
 
 if __name__ == "__main__":
