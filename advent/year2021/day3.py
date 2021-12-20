@@ -147,8 +147,8 @@ def part_two() -> None:
     oxygen = int(oxygen_string, base=2)
     co2 = int(co2_string, base=2)
 
-    print(f"Gamma:   {oxygen_string} ({oxygen})")
-    print(f"Epsilon: {co2_string} ({co2})")
+    print(f"Oxygen: {oxygen_string} ({oxygen})")
+    print(f"CO2:    {co2_string} ({co2})")
     print(f"Life Support: {oxygen*co2}")
 
 
