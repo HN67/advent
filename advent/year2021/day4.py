@@ -7,6 +7,7 @@ import typing as t
 
 from . import core
 
+T = t.TypeVar("T")
 TCo = t.TypeVar("TCo", covariant=True)
 
 logger = logging.getLogger(__name__)
@@ -20,11 +21,41 @@ class Tile(t.Generic[TCo]):
     marked: bool
 
 
-@dataclasses.dataclass()
-class Board(t.Generic[TCo]):
+BoardS = t.TypeVar("BoardS", bound="Board")
+
+
+@dataclasses.dataclass(frozen=True)
+class Board(t.Generic[T]):
     """Bingo board."""
 
-    rows: c.Sequence[c.Sequence[Tile]]
+    rows: c.Sequence[c.Sequence[Tile[T]]]
+
+    @property
+    def columns(self) -> c.Sequence[c.Sequence[Tile[T]]]:
+        """Column major ordering of the board tiles."""
+        return list(zip(*self.rows))
+
+    def mark(self: BoardS, value: T) -> BoardS:
+        """Create a board with any tiles containing the given value marked."""
+        return type(self)(
+            [
+                [
+                    Tile(tile.value, True) if tile.value == value else tile
+                    for tile in row
+                ]
+                for row in self.rows
+            ]
+        )
+
+    def complete(self) -> bool:
+        """Whether the board has a solid row or column of marks."""
+        return any(all(tile.marked for tile in row) for row in self.rows) or any(
+            all(tile.marked for tile in column) for column in self.columns
+        )
+
+    def unmarked(self) -> c.Iterable[T]:
+        """The values of unmarked tiles."""
+        return (tile.value for row in self.rows for tile in row)
 
 
 def part_one() -> None:
