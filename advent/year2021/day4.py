@@ -159,4 +159,4 @@ def part_two() -> None:
 
 if __name__ == "__main__":
     core.configure_logger(logger, level=logging.INFO)
-    core.cmd(3, part_one, part_two)
+    core.cmd(4, part_one, part_two)
