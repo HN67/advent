@@ -103,6 +103,27 @@ def winner(
     return None
 
 
+def winners(
+    calls: c.Iterable[T], boards: c.Iterable[Board[T]]
+) -> t.Iterable[tuple[T, Board[T]]]:
+    """Find the winning boards, sorted in order of winning.
+
+    Yields call, board, where call is the call that completed board.
+
+    If boards win simultaneously,
+    they are returned in the order provided.
+    """
+    for call in calls:
+        # Mark the call
+        boards = [board.mark(call) for board in boards]
+        # Check for a winner
+        for board in boards:
+            if board.complete():
+                yield call, board
+        # Remove boards that have won
+        boards = [board for board in boards if not board.complete()]
+
+
 def valuate(call: int, board: Board[int]) -> int:
     """The value of a completed board with the winning call."""
     return sum(board.unmarked()) * call
@@ -111,18 +132,29 @@ def valuate(call: int, board: Board[int]) -> int:
 def part_one() -> None:
     """Solve Part One."""
     calls, boards = read_input()
-    winning = winner(calls, boards)
-    if winning is None:
-        print("No winner.")
-    else:
-        call, board = winning
+    winning = iter(winners(calls, boards))
+    try:
+        call, board = next(winning)
+        print("First winner:")
         print(f"Call: {call}")
         print(f"Board: {board}")
         print(f"Score: {valuate(call, board)}")
+    except StopIteration:
+        print("No winner.")
 
 
 def part_two() -> None:
     """Solve Part Two."""
+    calls, boards = read_input()
+    winning = list(winners(calls, boards))
+    try:
+        call, board = winning[-1]
+        print("Last winner:")
+        print(f"Call: {call}")
+        print(f"Board: {board}")
+        print(f"Score: {valuate(call, board)}")
+    except IndexError:
+        print("No winner.")
 
 
 if __name__ == "__main__":
