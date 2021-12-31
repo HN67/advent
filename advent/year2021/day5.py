@@ -77,7 +77,19 @@ class Box:
         """Return the points covered by this box."""
         min_x, max_x = minmax(self.origin.x, self.corner.x)
         min_y, max_y = minmax(self.origin.y, self.corner.y)
-        return (Point(x, y) for x in range(min_x, max_x) for y in range(min_y, max_y))
+        # Add 1 to ends so we get inclusive ranges
+        return (
+            Point(x, y)
+            for x in range(min_x, max_x + 1)
+            for y in range(min_y, max_y + 1)
+        )
+
+    def straight_line(self) -> bool:
+        """Whether the box is a straight line.
+
+        Specifically, whether one of the coordinates is the same in origin and corner.
+        """
+        return self.origin.x == self.corner.x or self.origin.y == self.corner.y
 
 
 def density_map(boxes: t.Iterable[Box]) -> collections.Counter[Point[int]]:
@@ -114,9 +126,12 @@ def part_one() -> None:
     Counts the number of points with at least two overlapping lines.
     """
     lines = parse_input(sys.stdin)
-    density = density_map(lines)
+    # Only check straight lines
+    density = density_map(line for line in lines if line.straight_line())
     overlaps = [point for point, number in density.items() if number > 1]
     print(f"Number of Overlaps: {len(overlaps)}")
+    # TODO are we accounting for the end exclusive behaviour of ranges?
+    # TODO need to ignore diagonal lines
 
 
 def part_two() -> None:
