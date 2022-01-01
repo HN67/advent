@@ -1,5 +1,6 @@
 """Solution for Day 5 of AoC."""
 
+import collections
 import collections.abc as c
 import dataclasses
 import logging
@@ -12,8 +13,10 @@ logger = logging.getLogger(__name__)
 
 DAY = 6
 
+LS = t.TypeVar("LS", bound="Lanternfish")
 
-@dataclasses.dataclass()
+
+@dataclasses.dataclass(frozen=True)
 class Lanternfish:
     """A fish that produces offspring periodically."""
 
@@ -22,16 +25,29 @@ class Lanternfish:
     RESET = 6
     START = 8
 
-    def tick(self) -> t.Optional["Lanternfish"]:
+    def tick(self: LS) -> tuple[LS, t.Optional["Lanternfish"]]:
         """Increment time for this fish by one.
 
         If the fish gives birth, the new fish is returned.
         """
-        self.timer -= 1
-        if self.timer < 0:
-            self.timer = self.RESET
-            return Lanternfish(self.START)
-        return None
+        birth = None
+
+        timer = self.timer - 1
+        # Check for a new birth
+        if timer < 0:
+            timer = self.RESET
+            birth = type(self)(timer=self.START)
+
+        # Return updated fish and new birth if existant
+        return (type(self)(timer=timer), birth)
+
+
+LanternfishSwarm = collections.Counter[Lanternfish]
+
+
+def compress(fishes: c.Iterable[Lanternfish]) -> LanternfishSwarm:
+    """Compress fish into a swarm."""
+    return collections.Counter(fishes)
 
 
 def read_input(stream: t.TextIO) -> c.Iterable[Lanternfish]:
@@ -42,36 +58,42 @@ def read_input(stream: t.TextIO) -> c.Iterable[Lanternfish]:
     )
 
 
-def advance(fishes: c.Iterable[Lanternfish]) -> c.Iterable[Lanternfish]:
+def advance(swarm: LanternfishSwarm) -> LanternfishSwarm:
     """Tick each of the provided fish, appending any new fish."""
-    new = []
-    for fish in fishes:
-        birth = fish.tick()
+    new: LanternfishSwarm = collections.Counter()
+    for fish, count in swarm.items():
+        nfish, birth = fish.tick()
         if birth:
-            new.append(birth)
-        yield fish
-    yield from new
+            new[birth] += count
+        new[nfish] += count
+    return new
 
 
-def simulate(fishes: c.Iterable[Lanternfish], days: int = 1) -> c.Iterable[Lanternfish]:
+def simulate(swarm: LanternfishSwarm, days: int = 1) -> LanternfishSwarm:
     """Simulates a population of Lanternfish."""
+    logger.info(swarm)
     for _ in range(days):
-        fishes = advance(fishes)
-    return fishes
+        swarm = advance(swarm)
+        logger.info(swarm)
+    return swarm
 
 
-SIMULATION_DAYS = 80
+def solve(days: int) -> None:
+    """Solve the puzzle to the specified simulation length."""
+    fishes = read_input(sys.stdin)
+    swarm = compress(fishes)
+    end = simulate(swarm, days)
+    print(f"Final Population: {end.total()}")
 
 
 def part_one() -> None:
     """Solve Part One"""
-    fishes = read_input(sys.stdin)
-    end = simulate(fishes, SIMULATION_DAYS)
-    print(f"Final Population: {len(list(end))}")
+    solve(80)
 
 
 def part_two() -> None:
     """Solve Part Two."""
+    solve(256)
 
 
 if __name__ == "__main__":
