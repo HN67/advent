@@ -1,4 +1,4 @@
-"""Solution for Day 5 of AoC."""
+"""Solution for Day 6 of AoC."""
 
 import collections
 import collections.abc as c
