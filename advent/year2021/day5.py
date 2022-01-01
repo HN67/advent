@@ -66,56 +66,86 @@ def minmax(a: CS, b: CS) -> tuple[CS, CS]:
     return (left, right)
 
 
+def span(start: int, end: int) -> range:
+    """Create an appropriate range object.
+
+    Creates a range over the inclusive interval [start, end],
+    (i.e shifting end param to accomodate `range` exclusive behaviour)
+    and automatically uses a negative step if start > end.
+    """
+    if start > end:
+        step = -1
+    else:
+        step = 1
+    return range(start, end + step, step)
+
+
 @dataclasses.dataclass(frozen=True)
-class Box:
+class Line:
     """Euclidean 2D Box."""
 
     origin: Point[int]
-    corner: Point[int]
+    end: Point[int]
 
     def coverage(self) -> t.Iterable[Point[int]]:
-        """Return the points covered by this box."""
-        min_x, max_x = minmax(self.origin.x, self.corner.x)
-        min_y, max_y = minmax(self.origin.y, self.corner.y)
-        # Add 1 to ends so we get inclusive ranges
-        return (
-            Point(x, y)
-            for x in range(min_x, max_x + 1)
-            for y in range(min_y, max_y + 1)
-        )
+        """Return the points covered by this line.
+
+        Returns an undefined set when the line is not straight or 45 degrees.
+        """
+        # Span the two axes
+        x_span = span(self.origin.x, self.end.x)
+        y_span = span(self.origin.y, self.end.y)
+        # A 45 degree line will zip together perfectly
+        # but we need to special case straight ones
+        x_iter: t.Iterable[int] = x_span
+        y_iter: t.Iterable[int] = y_span
+        if self.vertical():
+            x_iter = itertools.repeat(self.origin.x, len(y_span))
+        if self.horizontal():
+            y_iter = itertools.repeat(self.origin.y, len(x_span))
+        # Return the iter of points
+        return (Point(x, y) for x, y in zip(x_iter, y_iter))
+
+    def vertical(self) -> bool:
+        """Whether the line is a straight vertical line."""
+        return self.origin.x == self.end.x
+
+    def horizontal(self) -> bool:
+        """Whether the line is a straight horizontal line."""
+        return self.origin.y == self.end.y
 
     def straight_line(self) -> bool:
-        """Whether the box is a straight line.
+        """Whether the line is a straight line.
 
-        Specifically, whether one of the coordinates is the same in origin and corner.
+        Specifically, whether one of the coordinates is the same in origin and end.
         """
-        return self.origin.x == self.corner.x or self.origin.y == self.corner.y
+        return self.vertical() or self.horizontal()
 
 
-def density_map(boxes: t.Iterable[Box]) -> collections.Counter[Point[int]]:
-    """Overlay boxes to obtain a density map of the number of overlaps at each point."""
+def density_map(lines: t.Iterable[Line]) -> collections.Counter[Point[int]]:
+    """Overlay lines to obtain a density map of the number of overlaps at each point."""
     return collections.Counter(
-        itertools.chain.from_iterable(box.coverage() for box in boxes)
+        itertools.chain.from_iterable(line.coverage() for line in lines)
     )
 
 
-def parse_line(line: str) -> Box:
-    """Parse an input line into a 'Box', with origin/corner.
+def parse_line(line: str) -> Line:
+    """Parse an input line into a 'Line', with origin/end.
 
     Takes a line of the form 'x1,y1 -> x2,y2'.
     """
     try:
-        origin_string, corner_string = line.strip().split("->")
+        origin_string, end_string = line.strip().split("->")
     except ValueError as arrowException:
         raise ValueError(
             f"-> symbol does not exist as expected in string '{line}'"
         ) from arrowException
     origin = Point.parse(origin_string, converter=int)
-    corner = Point.parse(corner_string, converter=int)
-    return Box(origin=origin, corner=corner)
+    end = Point.parse(end_string, converter=int)
+    return Line(origin=origin, end=end)
 
 
-def parse_input(stream: t.TextIO) -> t.Iterable[Box]:
+def parse_input(stream: t.TextIO) -> t.Iterable[Line]:
     """Parse puzzle input."""
     return (parse_line(line) for line in stream)
 
@@ -130,12 +160,15 @@ def part_one() -> None:
     density = density_map(line for line in lines if line.straight_line())
     overlaps = [point for point, number in density.items() if number > 1]
     print(f"Number of Overlaps: {len(overlaps)}")
-    # TODO are we accounting for the end exclusive behaviour of ranges?
-    # TODO need to ignore diagonal lines
 
 
 def part_two() -> None:
     """Solve Part Two."""
+    lines = parse_input(sys.stdin)
+    # Only check straight lines
+    density = density_map(lines)
+    overlaps = [point for point, number in density.items() if number > 1]
+    print(f"Number of Overlaps: {len(overlaps)}")
 
 
 if __name__ == "__main__":
