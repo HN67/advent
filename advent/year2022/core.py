@@ -11,7 +11,7 @@ def configure_logger(
     loggerObject: logging.Logger,
     *,
     level: t.Union[int, str] = logging.WARNING,
-    format_string: str = "[%(asctime)s] [%(levelname)s] %(name)s - %(message)s",
+    format_string: t.Optional[str] = None,
     force: bool = True,
 ) -> logging.Logger:
     """Performs standard configuration on the provided logger.
@@ -22,15 +22,21 @@ def configure_logger(
 
     Returns the logger passed.
     """
+    # Set format_string to default if not provided
+    if format_string is None:
+        format_string = "[%(asctime)s] [%(levelname)s] %(name)s - %(message)s"
+
     # Add formatted handler
     # Only add the handler if forced or none exist
     if force or len(loggerObject.handlers) == 0:
         handler = logging.StreamHandler()
         handler.setFormatter(logging.Formatter(format_string))
         loggerObject.addHandler(handler)
+
     # Set logging level
     loggerObject.setLevel(level)
-    # Chain object
+
+    # Return object so this function can be chained
     return loggerObject
 
 
