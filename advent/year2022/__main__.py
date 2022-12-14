@@ -5,6 +5,7 @@ import sys
 
 from . import core
 from . import day1
+from . import day2
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ def main() -> None:
     core.configure_logger(root_logger)
 
     runner = core.Runner()
-    for day in (day1,):
+    for day in (day1, day2):
         runner.load_component(day.component)
     runner.cmd(sys.stdin, sys.stdout)
 
