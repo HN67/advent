@@ -1,5 +1,6 @@
 """Solution to Day 1 of AoC."""
 
+import itertools
 import logging
 import typing as t
 
@@ -11,7 +12,20 @@ logger = logging.getLogger(__name__)
 component = core.Component()
 
 
+def parse_data(lines: t.Iterable[str]) -> t.Iterable[t.Sequence[int]]:
+    """Parse elf calorie carrying from input data."""
+    return (
+        [int(value) for value in group]
+        for key, group in itertools.groupby(lines, key=lambda line: len(line) > 0)
+        if key
+    )
+
+
 @component.hook(1, 1)
 def one(input_stream: t.TextIO, output_stream: t.TextIO) -> None:
     """Day 1 Part 1 solution."""
-    logger.warning("Not implemented")
+    lines = core.load_data(input_stream)
+    elves = parse_data(lines)
+    # Real data will never be empty but for max to type correctly we should provide a default
+    most: int = max(map(sum, elves), default=0)
+    print(f"Most total calories: {most}", file=output_stream)
