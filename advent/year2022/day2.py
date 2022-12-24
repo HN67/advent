@@ -89,7 +89,7 @@ def parse_desired_game(encoding: str) -> t.Tuple[RPS, RPS]:
     opponent, player = encoding.split()
     opponent_symbol = RPS.from_opponent(opponent)
     player_symbol = RPS.from_player_goal(player, opponent_symbol)
-    logger.info("O/P: %s %s", opponent_symbol, player_symbol)
+    logger.debug("O/P: %s %s", opponent_symbol, player_symbol)
     return (player_symbol, opponent_symbol)
 
 

@@ -33,14 +33,39 @@ def main() -> None:
         type=int,
     )
 
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="info",
+        action="store_true",
+        help="Enable verbose information",
+    )
+
+    parser.add_argument(
+        "-d",
+        "--debug",
+        dest="debug",
+        action="store_true",
+        help="Enable debug information",
+    )
+
     # Extract day and part
     args = parser.parse_args()
 
     day: int = args.day
     part: int = args.part
+    logging_info: bool = args.info
+    logging_debug: bool = args.debug
+
+    # Debug flag overrides info flag
+    logging_level = logging.WARNING
+    if logging_info:
+        logging_level = logging.INFO
+    if logging_debug:
+        logging_level = logging.DEBUG
 
     root_logger = logging.getLogger()
-    core.configure_logger(root_logger, level=logging.INFO)
+    core.configure_logger(root_logger, level=logging_level)
 
     runner = core.Runner()
     for module in MODULES:
