@@ -1,6 +1,5 @@
 """Core utilities for Advent of Code 2022."""
 
-import argparse
 import collections.abc as c
 import logging
 import typing as t
@@ -84,30 +83,10 @@ class Runner:
         """Collect solutions held in a Component."""
         self.solutions.update(component.solutions)
 
-    def cmd(self, input_stream: t.TextIO, output_stream: t.TextIO) -> None:
-        """Act as a command line script."""
-
-        # Set up cmdline argument parser
-        parser = argparse.ArgumentParser(description="Solve AoC 2022 problems.")
-
-        # Not really practical to restrict the choice of day
-        parser.add_argument("day", help="Which day to solve", type=int)
-        # Doing numbers for part makes type conversion easier
-        parser.add_argument(
-            "part",
-            choices=[1, 2],
-            help="Which part to solve",
-            const=1,
-            default=1,
-            nargs="?",
-            type=int,
-        )
-
-        # Extract day and part
-        args = parser.parse_args()
-
-        day: int = args.day
-        part: int = args.part
+    def run(
+        self, input_stream: t.TextIO, output_stream: t.TextIO, *, day: int, part: int
+    ) -> None:
+        """Run the requested solution using the given communication channels."""
 
         # Lookup the solution function, handling non existance
         try:
