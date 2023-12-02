@@ -4,11 +4,11 @@ import argparse
 import logging
 import sys
 
-from . import core
-from . import day1
-from . import day2
+from advent import core
+from advent import year2022
+from advent import year2023
 
-MODULES = (day1, day2)
+YEAR_PACKAGES = (year2022.MODULES, year2023.MODULES)
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +20,7 @@ def main() -> None:
     # Set up cmdline argument parser
     parser = argparse.ArgumentParser(description="Solve AoC 2022 problems.")
 
+    parser.add_argument("year", help="Advent year", type=int)
     # Not really practical to restrict the choice of day
     parser.add_argument("day", help="Which day to solve", type=int)
     # Doing numbers for part makes type conversion easier
@@ -52,6 +53,7 @@ def main() -> None:
     # Extract day and part
     args = parser.parse_args()
 
+    year: int = args.year
     day: int = args.day
     part: int = args.part
     logging_info: bool = args.info
@@ -68,9 +70,12 @@ def main() -> None:
     core.configure_logger(root_logger, level=logging_level)
 
     runner = core.Runner()
-    for module in MODULES:
-        runner.load_component(module.component)
-    runner.run(sys.stdin, sys.stdout, day=day, part=part)
+    for package in YEAR_PACKAGES:
+        for module in package:
+            runner.load_component(module.component)
+    runner.run(
+        sys.stdin, sys.stdout, problem=core.ProblemID(year=year, day=day, part=part)
+    )
 
 
 if __name__ == "__main__":

@@ -93,7 +93,7 @@ def parse_desired_game(encoding: str) -> t.Tuple[RPS, RPS]:
     return (player_symbol, opponent_symbol)
 
 
-@component.hook(2, 1)
+@component.hook(2, 1, year=2022)
 def one(input_stream: t.TextIO, output_stream: t.TextIO) -> None:
     """Solve Day 2 Part 1."""
     games = [parse_game(line) for line in core.load_data(input_stream)]
@@ -101,7 +101,7 @@ def one(input_stream: t.TextIO, output_stream: t.TextIO) -> None:
     print(f"Total score: {total}", file=output_stream)
 
 
-@component.hook(2, 2)
+@component.hook(2, 2, year=2022)
 def two(input_stream: t.TextIO, output_stream: t.TextIO) -> None:
     """Solve Day 2 Part 2."""
     games = [parse_desired_game(line) for line in core.load_data(input_stream)]

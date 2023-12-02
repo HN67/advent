@@ -21,7 +21,7 @@ def parse_data(lines: t.Iterable[str]) -> t.Iterable[t.Sequence[int]]:
     )
 
 
-@component.hook(1, 1)
+@component.hook(1, 1, year=2022)
 def one(input_stream: t.TextIO, output_stream: t.TextIO) -> None:
     """Day 1 Part 1 solution."""
     lines = core.load_data(input_stream)
@@ -31,7 +31,7 @@ def one(input_stream: t.TextIO, output_stream: t.TextIO) -> None:
     print(f"Most total calories: {most}", file=output_stream)
 
 
-@component.hook(1, 2)
+@component.hook(1, 2, year=2022)
 def two(input_stream: t.TextIO, output_stream: t.TextIO) -> None:
     """Day 1 Part 2 solution."""
     lines = core.load_data(input_stream)
