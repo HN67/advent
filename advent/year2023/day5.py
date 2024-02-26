@@ -136,24 +136,22 @@ def apply_mapping_to_range(
             [
                 chunk
                 for chunk_batch in (
-                    (
-                        # If the source start of a mapping segment starts in this chunk,
-                        # we bisect the chunk into a mapped and unmapped portion
-                        [
-                            (chunk_start, source_start - chunk_start),
+                    # If the source start of a mapping segment starts in this chunk,
+                    # we bisect the chunk into a mapped and unmapped portion
+                    [
+                        (chunk_start, source_start - chunk_start),
+                        (
+                            dest_start,
+                            # Mapped range goes up to lower of chunk end and source end
                             (
-                                dest_start,
-                                # Mapped range goes up to lower of chunk end and source end
-                                (
-                                    min(
-                                        chunk_start + chunk_length,
-                                        source_start + map_length,
-                                    )
-                                    - source_start
-                                ),
+                                min(
+                                    chunk_start + chunk_length,
+                                    source_start + map_length,
+                                )
+                                - source_start
                             ),
-                        ]
-                    )
+                        ),
+                    ]
                     for chunk_start, chunk_length in source_ranges
                     if source_start in range(chunk_start, chunk_start + chunk_length)
                 )
@@ -161,11 +159,15 @@ def apply_mapping_to_range(
             ]
         )
 
+        logger.debug("Current destination ranges: %s", destination_ranges)
+
         source_ranges = [
             (chunk_start, chunk_length)
             for chunk_start, chunk_length in source_ranges
             if source_start not in range(chunk_start, chunk_start + chunk_length)
         ]
+
+        logger.debug("Current source ranges: %s", source_ranges)
 
     # Unmapped source ranges are mapped as is
     return destination_ranges + source_ranges
@@ -191,9 +193,12 @@ def process_advanced_almanac(almanac: Almanac) -> t.Iterable[LengthRange]:
 
     value_ranges: t.List[LengthRange] = list(zip(seed_values[0::2], seed_values[1::2]))
 
+    logger.debug("Current value ranges: %s", value_ranges)
+
     for mapping in mappings:
         # Apply the mapping to each of the existing chunks,
         # and flatten the results
+        logger.debug("Next mapping: %s", mapping)
         value_ranges = [
             result
             for results in (
@@ -202,6 +207,8 @@ def process_advanced_almanac(almanac: Almanac) -> t.Iterable[LengthRange]:
             )
             for result in results
         ]
+
+        logger.debug("Current value ranges: %s", value_ranges)
 
     return value_ranges
 
